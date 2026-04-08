@@ -1,25 +1,18 @@
-; Metatile table copied from Actividad5 actividad5.asm.
+; Metatile table copied from act 5/src/Step4_code.asm.
 ; TL, TR, BL, BR
 metatile_table:
-  ; 0 = Stone
-  .byte $07,$08,$07,$08
+  .byte $06,$07,$16,$17
+  .byte $0C,$0D,$1C,$1D
+  .byte $04,$05,$14,$15
+  .byte $0A,$0B,$1A,$1B
 
-  ; 1 = Water
-  .byte $05,$06,$05,$06
-
-  ; 2 = Sand
-  .byte $03,$04,$03,$04
-
-  ; 3 = Grass
-  .byte $01,$02,$01,$02
-
-; Attribute table copied from Actividad5 actividad5.asm.
+; Attribute table copied from act 5/src/screen.asm.
 attrtable:
-  .byte $BB,$AA,$AA,$AA,$11,$FF,$55,$AA
-  .byte $7B,$5A,$5A,$5A,$11,$FF,$55,$AA
-  .byte $33,$00,$00,$00,$00,$FF,$AA,$AA
-  .byte $33,$00,$00,$00,$F0,$FF,$5A,$5A
-  .byte $33,$00,$00,$00,$FF,$FF,$00,$00
-  .byte $33,$00,$00,$00,$AA,$66,$00,$00
-  .byte $F3,$F0,$F0,$F0,$FA,$76,$AA,$AA
-  .byte $FF,$FF,$FF,$FF,$FF,$F7,$FA,$FA
+  .byte $C0,$C0,$C0,$C0,$C0,$C0,$E0,$30
+  .byte $8C,$CF,$F8,$CA,$88,$C8,$C8,$32
+  .byte $C8,$CA,$C8,$CA,$CA,$CC,$CC,$33
+  .byte $88,$AE,$AC,$AF,$AC,$8F,$EC,$33
+  .byte $CC,$FC,$CA,$CE,$CC,$88,$CC,$33
+  .byte $CC,$CF,$8C,$CC,$AF,$EC,$CC,$33
+  .byte $C8,$C8,$CA,$FA,$CA,$CE,$CC,$33
+  .byte $00,$00,$00,$00,$00,$00,$00,$00
