@@ -14,7 +14,7 @@ direction:    .res 1
 .proc init_player
   LDA #$40
   STA player_x
-  LDA #$40
+  LDA #$30
   STA player_y
 
   LDA #$00
@@ -65,7 +65,57 @@ done_update:
   RTS
 .endproc
 
+; ------------------------------------------------------------
+; move_character
+; ------------------------------------------------------------
+; TEMPORARY AUTOMATIC MOVEMENT TEST HOOK
+;
+; This routine currently moves the player automatically so we can
+; test collision before controller input is merged.
+;
+; Partner/controller merge notes:
+;   1. Keep the candidate movement pattern below.
+;   2. Start by copying player_x/player_y into candidatePlayerX and
+;      candidatePlayerY.
+;   3. Change candidatePlayerX or candidatePlayerY based on the
+;      controller direction instead of using the automatic direction
+;      state below.
+;   4. Call IsPlayerCandidatePositionBlocked.
+;   5. If collisionResult is COLLISION_ALLOWED ($00), copy the
+;      candidate values back into player_x/player_y.
+;   6. If collisionResult is COLLISION_BLOCKED ($01), do not copy
+;      the candidate values. The player stays at the old position.
+;
+; Example controller merge shape:
+;   LDA player_x
+;   STA candidatePlayerX
+;   LDA player_y
+;   STA candidatePlayerY
+;
+;   ; controller code changes candidatePlayerX/Y here
+;
+;   JSR IsPlayerCandidatePositionBlocked
+;   LDA collisionResult
+;   BNE movement_blocked
+;
+;   LDA candidatePlayerX
+;   STA player_x
+;   LDA candidatePlayerY
+;   STA player_y
+;
+; movement_blocked:
+;   RTS
+;
+; Important:
+;   Controller code should not read the map directly. It should only
+;   build the candidate position and call the collision module.
+; ------------------------------------------------------------
 .proc move_character
+  LDA player_x
+  STA candidatePlayerX
+  LDA player_y
+  STA candidatePlayerY
+
   LDA direction
   CMP #0
   BEQ move_right
@@ -76,37 +126,73 @@ done_update:
   JMP move_up
 
 move_right:
-  INC player_x
+  INC candidatePlayerX
+  JSR IsPlayerCandidatePositionBlocked
+  LDA collisionResult
+  BNE right_blocked
+
+  LDA candidatePlayerX
+  STA player_x
+  LDA candidatePlayerY
+  STA player_y
   LDA player_x
   CMP #$A0
   BNE done
+right_blocked:
   LDA #1
   STA direction
   RTS
 
 move_down:
-  INC player_y
+  INC candidatePlayerY
+  JSR IsPlayerCandidatePositionBlocked
+  LDA collisionResult
+  BNE down_blocked
+
+  LDA candidatePlayerX
+  STA player_x
+  LDA candidatePlayerY
+  STA player_y
   LDA player_y
   CMP #$A0
   BNE done
+down_blocked:
   LDA #2
   STA direction
   RTS
 
 move_left:
-  DEC player_x
+  DEC candidatePlayerX
+  JSR IsPlayerCandidatePositionBlocked
+  LDA collisionResult
+  BNE left_blocked
+
+  LDA candidatePlayerX
+  STA player_x
+  LDA candidatePlayerY
+  STA player_y
   LDA player_x
   CMP #$40
   BNE done
+left_blocked:
   LDA #3
   STA direction
   RTS
 
 move_up:
-  DEC player_y
+  DEC candidatePlayerY
+  JSR IsPlayerCandidatePositionBlocked
+  LDA collisionResult
+  BNE up_blocked
+
+  LDA candidatePlayerX
+  STA player_x
+  LDA candidatePlayerY
+  STA player_y
   LDA player_y
   CMP #$40
   BNE done
+up_blocked:
   LDA #0
   STA direction
 

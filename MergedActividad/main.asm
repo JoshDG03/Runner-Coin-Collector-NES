@@ -18,6 +18,7 @@ row_hi:        .res 1
 vblank_ready:  .res 1
 
 .include "player.asm"
+.include "collision.asm"
 
 .segment "CODE"
 
