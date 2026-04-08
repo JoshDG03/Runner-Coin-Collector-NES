@@ -17,6 +17,7 @@ row_lo:        .res 1
 row_hi:        .res 1
 vblank_ready:  .res 1
 
+.include "controller.asm"
 .include "player.asm"
 .include "collision.asm"
 
@@ -40,6 +41,7 @@ vblank_ready:  .res 1
   STA PPUCTRL
   STA PPUMASK
   STA vblank_ready
+  STA controller1
 
   JSR init_player
 
@@ -175,6 +177,7 @@ wait_vblank:
   LDA #$00
   STA vblank_ready
 
+  JSR ReadController
   JSR update_animation
   JSR clear_oam_buffer
   JSR draw_character

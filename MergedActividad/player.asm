@@ -9,6 +9,8 @@ anim_counter: .res 1
 anim_frame:   .res 1
 direction:    .res 1
 
+PLAYER_MOVE_SPEED_TICKS = $01
+
 .segment "CODE"
 
 .proc init_player
@@ -47,9 +49,50 @@ loop_clear:
 .endproc
 
 .proc update_animation
+  LDA controller1
+  AND #BUTTON_RIGHT
+  BNE controller_pressed_right
+
+  LDA controller1
+  AND #BUTTON_DOWN
+  BNE controller_pressed_down
+
+  LDA controller1
+  AND #BUTTON_LEFT
+  BNE controller_pressed_left
+
+  LDA controller1
+  AND #BUTTON_UP
+  BNE controller_pressed_up
+
+  LDA #$00
+  STA anim_counter
+  STA anim_frame
+  RTS
+
+controller_pressed_right:
+  LDA #$00
+  STA direction
+  JMP animate_controller_movement
+
+controller_pressed_down:
+  LDA #$01
+  STA direction
+  JMP animate_controller_movement
+
+controller_pressed_left:
+  LDA #$02
+  STA direction
+  JMP animate_controller_movement
+
+controller_pressed_up:
+  LDA #$03
+  STA direction
+
+animate_controller_movement:
   INC anim_counter
   LDA anim_counter
-  CMP #8
+  CMP #PLAYER_MOVE_SPEED_TICKS
   BNE done_update
 
   LDA #0
@@ -68,47 +111,18 @@ done_update:
 ; ------------------------------------------------------------
 ; move_character
 ; ------------------------------------------------------------
-; TEMPORARY AUTOMATIC MOVEMENT TEST HOOK
+; CONTROLLER MOVEMENT + COLLISION HOOK
 ;
-; This routine currently moves the player automatically so we can
-; test collision before controller input is merged.
+; update_animation sets direction from controller1 before calling
+; this routine. This routine then builds a candidate position,
+; asks the collision module if that candidate is blocked, and only
+; commits the move if the candidate position is legal.
 ;
 ; Partner/controller merge notes:
-;   1. Keep the candidate movement pattern below.
-;   2. Start by copying player_x/player_y into candidatePlayerX and
-;      candidatePlayerY.
-;   3. Change candidatePlayerX or candidatePlayerY based on the
-;      controller direction instead of using the automatic direction
-;      state below.
-;   4. Call IsPlayerCandidatePositionBlocked.
-;   5. If collisionResult is COLLISION_ALLOWED ($00), copy the
-;      candidate values back into player_x/player_y.
-;   6. If collisionResult is COLLISION_BLOCKED ($01), do not copy
-;      the candidate values. The player stays at the old position.
-;
-; Example controller merge shape:
-;   LDA player_x
-;   STA candidatePlayerX
-;   LDA player_y
-;   STA candidatePlayerY
-;
-;   ; controller code changes candidatePlayerX/Y here
-;
-;   JSR IsPlayerCandidatePositionBlocked
-;   LDA collisionResult
-;   BNE movement_blocked
-;
-;   LDA candidatePlayerX
-;   STA player_x
-;   LDA candidatePlayerY
-;   STA player_y
-;
-; movement_blocked:
-;   RTS
-;
-; Important:
-;   Controller code should not read the map directly. It should only
-;   build the candidate position and call the collision module.
+;   If the controller logic changes later, keep this pattern:
+;   copy player_x/player_y into candidatePlayerX/Y, modify the
+;   candidate values, call IsPlayerCandidatePositionBlocked, and
+;   commit only when collisionResult is $00.
 ; ------------------------------------------------------------
 .proc move_character
   LDA player_x
@@ -127,74 +141,29 @@ done_update:
 
 move_right:
   INC candidatePlayerX
-  JSR IsPlayerCandidatePositionBlocked
-  LDA collisionResult
-  BNE right_blocked
-
-  LDA candidatePlayerX
-  STA player_x
-  LDA candidatePlayerY
-  STA player_y
-  LDA player_x
-  CMP #$A0
-  BNE done
-right_blocked:
-  LDA #1
-  STA direction
-  RTS
+  JMP try_commit_candidate
 
 move_down:
   INC candidatePlayerY
-  JSR IsPlayerCandidatePositionBlocked
-  LDA collisionResult
-  BNE down_blocked
-
-  LDA candidatePlayerX
-  STA player_x
-  LDA candidatePlayerY
-  STA player_y
-  LDA player_y
-  CMP #$A0
-  BNE done
-down_blocked:
-  LDA #2
-  STA direction
-  RTS
+  JMP try_commit_candidate
 
 move_left:
   DEC candidatePlayerX
-  JSR IsPlayerCandidatePositionBlocked
-  LDA collisionResult
-  BNE left_blocked
-
-  LDA candidatePlayerX
-  STA player_x
-  LDA candidatePlayerY
-  STA player_y
-  LDA player_x
-  CMP #$40
-  BNE done
-left_blocked:
-  LDA #3
-  STA direction
-  RTS
+  JMP try_commit_candidate
 
 move_up:
   DEC candidatePlayerY
+  JMP try_commit_candidate
+
+try_commit_candidate:
   JSR IsPlayerCandidatePositionBlocked
   LDA collisionResult
-  BNE up_blocked
+  BNE done
 
   LDA candidatePlayerX
   STA player_x
   LDA candidatePlayerY
   STA player_y
-  LDA player_y
-  CMP #$40
-  BNE done
-up_blocked:
-  LDA #0
-  STA direction
 
 done:
   RTS
