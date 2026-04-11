@@ -21,6 +21,7 @@ vblank_ready:  .res 1
 .include "player.asm"
 .include "collision.asm"
 .include "enemy.asm"
+.include "coin.asm"
 
 .segment "CODE"
 
@@ -29,6 +30,14 @@ vblank_ready:  .res 1
 .endproc
 
 .proc nmi_handler
+  JSR ppu_commit
+
+  ; Keep scroll latched to the top-left each frame while rendering.
+  LDA PPUSTATUS
+  LDA #$00
+  STA PPUSCROLL
+  STA PPUSCROLL
+
   LDA #$01
   STA vblank_ready
   RTI
@@ -48,6 +57,7 @@ vblank_ready:  .res 1
 
   JSR init_player
   JSR InitializeEnemy
+  JSR InitCoinSystem
 
   ; ------------------------------------------------
   ; Load palettes
@@ -156,7 +166,7 @@ attr_loop:
   JSR clear_oam_buffer
   JSR draw_character
   JSR DrawEnemySprites
-  JSR ppu_commit
+  JSR DrawCoinSprite
 
 vblankwait:
   BIT PPUSTATUS
@@ -188,13 +198,14 @@ wait_vblank:
   BNE skip_game_updates
 
   JSR update_animation
+  JSR CheckCoinCollected
   JSR UpdateEnemy
 
 skip_game_updates:
   JSR clear_oam_buffer
   JSR draw_character
   JSR DrawEnemySprites
-  JSR ppu_commit
+  JSR DrawCoinSprite
 
   JMP main_loop
 .endproc

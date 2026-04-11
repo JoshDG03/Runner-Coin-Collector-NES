@@ -9,8 +9,6 @@ anim_counter: .res 1
 anim_frame:   .res 1
 direction:    .res 1
 
-PLAYER_MOVE_SPEED_TICKS = $08
-
 .segment "CODE"
 
 .proc init_player
@@ -92,7 +90,7 @@ controller_pressed_up:
 animate_controller_movement:
   INC anim_counter
   LDA anim_counter
-  CMP #PLAYER_MOVE_SPEED_TICKS
+  CMP playerMoveSpeedTicks
   BNE done_update
 
   LDA #0

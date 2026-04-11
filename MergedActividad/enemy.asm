@@ -19,7 +19,6 @@
 
 ENEMY_ATTR_NORMAL       = $03
 ENEMY_ATTR_HFLIP        = $43
-ENEMY_MOVE_SPEED_TICKS  = $10
 
 ENEMY_DIRECTION_RIGHT = $00
 ENEMY_DIRECTION_DOWN  = $01
@@ -141,7 +140,7 @@ enemyCollisionResult: .res 1
 .proc UpdateEnemy
   INC enemyMoveTimer
   LDA enemyMoveTimer
-  CMP #ENEMY_MOVE_SPEED_TICKS
+  CMP enemyMoveSpeedTicks
   BNE enemy_update_done
 
   LDA #$00
