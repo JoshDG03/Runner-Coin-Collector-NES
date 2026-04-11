@@ -20,6 +20,7 @@ vblank_ready:  .res 1
 .include "controller.asm"
 .include "player.asm"
 .include "collision.asm"
+.include "enemy.asm"
 
 .segment "CODE"
 
@@ -44,6 +45,7 @@ vblank_ready:  .res 1
   STA controller1
 
   JSR init_player
+  JSR InitializeEnemy
 
   ; ------------------------------------------------
   ; Load palettes
@@ -151,6 +153,7 @@ attr_loop:
 
   JSR clear_oam_buffer
   JSR draw_character
+  JSR DrawEnemySprites
   JSR ppu_commit
 
 vblankwait:
@@ -179,8 +182,10 @@ wait_vblank:
 
   JSR ReadController
   JSR update_animation
+  JSR UpdateEnemy
   JSR clear_oam_buffer
   JSR draw_character
+  JSR DrawEnemySprites
   JSR ppu_commit
 
   JMP main_loop

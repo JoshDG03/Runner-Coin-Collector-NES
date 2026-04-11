@@ -9,7 +9,7 @@ anim_counter: .res 1
 anim_frame:   .res 1
 direction:    .res 1
 
-PLAYER_MOVE_SPEED_TICKS = $01
+PLAYER_MOVE_SPEED_TICKS = $08
 
 .segment "CODE"
 
