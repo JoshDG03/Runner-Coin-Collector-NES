@@ -43,6 +43,8 @@ vblank_ready:  .res 1
   STA PPUMASK
   STA vblank_ready
   STA controller1
+  STA previousController1
+  STA pauseFlag
 
   JSR init_player
   JSR InitializeEnemy
@@ -181,8 +183,14 @@ wait_vblank:
   STA vblank_ready
 
   JSR ReadController
+  JSR UpdatePauseToggle
+  LDA pauseFlag
+  BNE skip_game_updates
+
   JSR update_animation
   JSR UpdateEnemy
+
+skip_game_updates:
   JSR clear_oam_buffer
   JSR draw_character
   JSR DrawEnemySprites
