@@ -63,10 +63,7 @@ loop_clear:
   AND #BUTTON_UP
   BNE controller_pressed_up
 
-  LDA #$00
-  STA anim_counter
-  STA anim_frame
-  RTS
+  JMP animate_controller_movement
 
 controller_pressed_right:
   LDA #$00
