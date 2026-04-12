@@ -21,6 +21,7 @@ vblank_ready:  .res 1
 .include "player.asm"
 .include "collision.asm"
 .include "enemy.asm"
+.include "hud.asm"
 .include "coin.asm"
 
 .segment "CODE"
@@ -57,6 +58,7 @@ vblank_ready:  .res 1
 
   JSR init_player
   JSR InitializeEnemy
+  JSR InitHudSystem
   JSR InitCoinSystem
 
   ; ------------------------------------------------
@@ -163,6 +165,9 @@ attr_loop:
   CPX #$40
   BNE attr_loop
 
+  JSR DrawHudStatic
+  JSR UpdateHudDynamic
+
   JSR clear_oam_buffer
   JSR draw_character
   JSR DrawEnemySprites
@@ -192,6 +197,11 @@ wait_vblank:
   LDA #$00
   STA vblank_ready
 
+  LDA hudDirty
+  BEQ hud_up_to_date
+  JSR UpdateHudDynamic
+
+hud_up_to_date:
   JSR ReadController
   JSR UpdatePauseToggle
   LDA pauseFlag
@@ -200,6 +210,7 @@ wait_vblank:
   JSR update_animation
   JSR CheckCoinCollected
   JSR UpdateEnemy
+  JSR CheckEnemyHitPlayer
 
 skip_game_updates:
   JSR clear_oam_buffer

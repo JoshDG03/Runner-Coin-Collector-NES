@@ -164,6 +164,7 @@ coin_not_collected:
   RTS
 
 coin_collected:
+  JSR AddScoreTen
   JSR IncreasePlayerSpeed
   JSR IncreaseEnemySpeed
   JSR SpawnCoin
