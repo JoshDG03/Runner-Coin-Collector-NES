@@ -28,8 +28,7 @@ scoreHundredsDigit: .res 1
 scoreTensDigit:     .res 1
 hudDirty:           .res 1
 enemyTouchLatch:    .res 1
-entityRightEdge:    .res 1
-entityBottomEdge:   .res 1
+wallTouchLatch:     .res 1
 
 .segment "CODE"
 
@@ -41,6 +40,7 @@ entityBottomEdge:   .res 1
   STA scoreHundredsDigit
   STA scoreTensDigit
   STA enemyTouchLatch
+  STA wallTouchLatch
 
   LDA #$01
   STA hudDirty
@@ -255,6 +255,24 @@ enemy_touch_done:
   STA hudDirty
 
 no_lives_left:
+  RTS
+.endproc
+
+.proc HandlePlayerWallCollision
+  LDA wallTouchLatch
+  BNE wall_collision_done
+
+  LDA #$01
+  STA wallTouchLatch
+  JSR LoseOneLife
+
+wall_collision_done:
+  RTS
+.endproc
+
+.proc ClearPlayerWallCollisionLatch
+  LDA #$00
+  STA wallTouchLatch
   RTS
 .endproc
 

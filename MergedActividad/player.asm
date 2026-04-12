@@ -156,12 +156,17 @@ move_up:
 try_commit_candidate:
   JSR IsPlayerCandidatePositionBlocked
   LDA collisionResult
-  BNE done
+  BNE blocked_by_wall
 
   LDA candidatePlayerX
   STA player_x
   LDA candidatePlayerY
   STA player_y
+  JSR ClearPlayerWallCollisionLatch
+  JMP done
+
+blocked_by_wall:
+  JSR HandlePlayerWallCollision
 
 done:
   RTS
