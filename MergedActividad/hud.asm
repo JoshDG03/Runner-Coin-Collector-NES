@@ -7,6 +7,14 @@ HUD_SCORE_R_TILE       = $25
 HUD_SCORE_E_TILE       = $26
 HUD_SCORE_COLON_TILE   = $27
 HUD_TILE_ZERO          = $0E
+HUD_GAME_G_TILE        = $2A
+HUD_GAME_A_TILE        = $2B
+HUD_GAME_M_TILE        = $2C
+HUD_GAME_E_TILE_2      = $2D
+HUD_GAME_O_TILE        = $2E
+HUD_GAME_V_TILE        = $2F
+HUD_GAME_E_TILE_3      = $30
+HUD_GAME_R_TILE_2      = $31
 
 HUD_LIVES_HEART_COL    = $01
 HUD_LIVES_X_COL        = $02
@@ -29,6 +37,11 @@ scoreTensDigit:     .res 1
 hudDirty:           .res 1
 enemyTouchLatch:    .res 1
 wallTouchLatch:     .res 1
+gameState:          .res 1
+gameOverScreenDrawn:.res 1
+
+GAME_STATE_PLAYING  = $00
+GAME_STATE_OVER     = $01
 
 .segment "CODE"
 
@@ -41,6 +54,8 @@ wallTouchLatch:     .res 1
   STA scoreTensDigit
   STA enemyTouchLatch
   STA wallTouchLatch
+  STA gameState
+  STA gameOverScreenDrawn
 
   LDA #$01
   STA hudDirty
@@ -81,13 +96,15 @@ wallTouchLatch:     .res 1
 .endproc
 
 .proc ApplyHudAttributes
-  ; Test HUD with background palette 0 across the affected top-row blocks.
+  ; The HUD now uses background palette 0, which already matches the
+  ; top-half quadrants in the original map attribute data. Restore the
+  ; original bytes so nearby map tiles keep their intended colors.
   LDA PPUSTATUS
   LDA #HUD_ATTR_BASE_HI
   STA PPUADDR
   LDA #HUD_ATTR_BASE_LO
   STA PPUADDR
-  LDA #$00
+  LDA #$C0
   STA PPUDATA
 
   LDA PPUSTATUS
@@ -95,11 +112,11 @@ wallTouchLatch:     .res 1
   STA PPUADDR
   LDA #(HUD_ATTR_BASE_LO + $05)
   STA PPUADDR
-  LDA #$00
+  LDA #$C0
   STA PPUDATA
-  LDA #$00
+  LDA #$E0
   STA PPUDATA
-  LDA #$00
+  LDA #$30
   STA PPUDATA
   RTS
 .endproc
@@ -254,6 +271,14 @@ enemy_touch_done:
   LDA #$01
   STA hudDirty
 
+  LDA livesRemaining
+  BNE no_lives_left
+
+  LDA #GAME_STATE_OVER
+  STA gameState
+  LDA #$00
+  STA gameOverScreenDrawn
+
 no_lives_left:
   RTS
 .endproc
@@ -273,6 +298,101 @@ wall_collision_done:
 .proc ClearPlayerWallCollisionLatch
   LDA #$00
   STA wallTouchLatch
+  RTS
+.endproc
+
+.proc DrawGameOverScreen
+  LDA #$00
+  STA PPUCTRL
+  STA PPUMASK
+
+  LDA PPUSTATUS
+  LDA #$20
+  STA PPUADDR
+  LDA #$00
+  STA PPUADDR
+
+  LDX #$00
+clear_game_over_page_0:
+  LDA #$00
+  STA PPUDATA
+  INX
+  BNE clear_game_over_page_0
+
+  LDX #$00
+clear_game_over_page_1:
+  LDA #$00
+  STA PPUDATA
+  INX
+  BNE clear_game_over_page_1
+
+  LDX #$00
+clear_game_over_page_2:
+  LDA #$00
+  STA PPUDATA
+  INX
+  BNE clear_game_over_page_2
+
+  LDX #$00
+clear_game_over_page_3:
+  LDA #$00
+  STA PPUDATA
+  INX
+  CPX #$C0
+  BNE clear_game_over_page_3
+
+  LDA PPUSTATUS
+  LDA #$23
+  STA PPUADDR
+  LDA #$C0
+  STA PPUADDR
+
+  LDX #$00
+clear_game_over_attributes:
+  LDA #$00
+  STA PPUDATA
+  INX
+  CPX #$40
+  BNE clear_game_over_attributes
+
+  LDA PPUSTATUS
+  LDA #$21
+  STA PPUADDR
+  LDA #$CB
+  STA PPUADDR
+
+  LDA #HUD_GAME_G_TILE
+  STA PPUDATA
+  LDA #HUD_GAME_A_TILE
+  STA PPUDATA
+  LDA #HUD_GAME_M_TILE
+  STA PPUDATA
+  LDA #HUD_GAME_E_TILE_2
+  STA PPUDATA
+  LDA #$00
+  STA PPUDATA
+  LDA #HUD_GAME_O_TILE
+  STA PPUDATA
+  LDA #HUD_GAME_V_TILE
+  STA PPUDATA
+  LDA #HUD_GAME_E_TILE_3
+  STA PPUDATA
+  LDA #HUD_GAME_R_TILE_2
+  STA PPUDATA
+
+  LDA #$00
+  STA gameOverScreenDrawn
+  INC gameOverScreenDrawn
+
+  LDA PPUSTATUS
+  LDA #$00
+  STA PPUSCROLL
+  STA PPUSCROLL
+
+  LDA #%10001000
+  STA PPUCTRL
+  LDA #%00011110
+  STA PPUMASK
   RTS
 .endproc
 

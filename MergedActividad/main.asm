@@ -48,6 +48,7 @@ vblank_ready:  .res 1
 .export main
 
 .proc main
+restart_game:
   LDA #$00
   STA PPUCTRL
   STA PPUMASK
@@ -197,6 +198,10 @@ wait_vblank:
   LDA #$00
   STA vblank_ready
 
+  LDA gameState
+  CMP #GAME_STATE_OVER
+  BEQ game_over_loop
+
   LDA hudDirty
   BEQ hud_up_to_date
   JSR UpdateHudDynamic
@@ -218,6 +223,30 @@ skip_game_updates:
   JSR DrawEnemySprites
   JSR DrawCoinSprite
 
+  JMP main_loop
+
+game_over_loop:
+  LDA gameOverScreenDrawn
+  BNE game_over_screen_ready
+  JSR DrawGameOverScreen
+
+game_over_screen_ready:
+  JSR clear_oam_buffer
+  JSR ReadController
+
+  LDA controller1
+  AND #BUTTON_START
+  BEQ store_game_over_controller
+
+  LDA previousController1
+  AND #BUTTON_START
+  BNE store_game_over_controller
+
+  JMP restart_game
+
+store_game_over_controller:
+  LDA controller1
+  STA previousController1
   JMP main_loop
 .endproc
 
