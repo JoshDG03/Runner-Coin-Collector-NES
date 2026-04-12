@@ -81,27 +81,25 @@ entityBottomEdge:   .res 1
 .endproc
 
 .proc ApplyHudAttributes
-  ; Top-left HUD area:
-  ; cols 0-1 use background palette 2 for the heart, cols 2-3 use palette 3.
+  ; Test HUD with background palette 0 across the affected top-row blocks.
   LDA PPUSTATUS
   LDA #HUD_ATTR_BASE_HI
   STA PPUADDR
   LDA #HUD_ATTR_BASE_LO
   STA PPUADDR
-  LDA #$CE
+  LDA #$00
   STA PPUDATA
 
-  ; Score label begins in attribute byte 5 and continues through 7.
   LDA PPUSTATUS
   LDA #HUD_ATTR_BASE_HI
   STA PPUADDR
   LDA #(HUD_ATTR_BASE_LO + $05)
   STA PPUADDR
-  LDA #$CC
+  LDA #$00
   STA PPUDATA
-  LDA #$EF
+  LDA #$00
   STA PPUDATA
-  LDA #$3F
+  LDA #$00
   STA PPUDATA
   RTS
 .endproc
